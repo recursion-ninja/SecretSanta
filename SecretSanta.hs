@@ -2,6 +2,7 @@ module Main where
 
 import SecretSanta.Participant
 import SecretSanta.Arrangement
+import SecretSanta.CyclicArrangement
 import SecretSanta.ConstraintMap
 import SecretSanta.Types
 import Control.Applicative            ((<$>),(<*>),liftA2)
@@ -24,7 +25,7 @@ main = getArgs
     >>= fmap parseParameters . mapM readFile
     >>= maybe errorMessage
           ( sequenceA
-          . fmap (selectArrangement :: ConstraintMap -> IO Arrangement)
+          . fmap (selectArrangement :: ConstraintMap -> IO (Maybe CyclicArrangement))
           . (constraintMap <$> participants <*> history)
         >=> print
           )

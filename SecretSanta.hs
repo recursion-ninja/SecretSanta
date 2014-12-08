@@ -2,10 +2,13 @@ module Main where
 
 import SecretSanta.Participant
 import SecretSanta.Arrangement
+import SecretSanta.ConstraintMap
+import SecretSanta.Types
 import Control.Applicative            ((<$>),(<*>),liftA2)
 import Control.Monad                  ((>=>))
 import Data.Map                hiding (filter,null)
 import Data.Maybe
+import Data.Traversable (sequenceA)
 import Prelude                 hiding (lookup)
 import Safe
 import System.Environment
@@ -21,7 +24,9 @@ main = getArgs
     >>= fmap parseParameters . mapM readFile
     >>= maybe errorMessage
          
-          ( selectArrangement <$> participants <*> history
+          ( sequenceA
+          . fmap (selectArrangement :: ConstraintMap -> IO Arrangement)
+          . (constraintMap <$> participants <*> history)
         >=> print
           )
 

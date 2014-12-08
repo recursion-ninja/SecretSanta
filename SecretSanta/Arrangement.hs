@@ -1,23 +1,38 @@
-module SecretSanta.Arrangement where
-{-
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+module SecretSanta.Arrangement
   ( Arrangement
   , feasibleArrangements
   , selectArrangement
   ) where
--}
 
-import           SecretSanta.Participant
-import           Control.Arrow           ((&&&),second)
-import qualified Control.Monad.Random    as R
-import           Data.Ord                (comparing)
-import           Data.List               (delete,minimumBy)
+
+import           SecretSanta.Types
+--import           SecretSanta.ConstraintMap
+--import           Control.Arrow           ((&&&),second)
+--import qualified Control.Monad.Random    as R
+--import           Data.Ord                (comparing)
+--import           Data.List               (delete,minimumBy)
 import           Data.Map hiding         (delete,filter,null)
-import           Data.Maybe              (isNothing)
+--import           Data.Maybe              (isNothing)
 import           Data.Traversable        (sequenceA)
 import           Prelude hiding          (lookup)
 
-type Arrangement = Map Name Name
+instance Arrangementia Arrangement where
+  feasibleArrangements = feasibleNormalArrangements
 
+feasibleNormalArrangements :: ConstraintMap -> [Arrangement]
+feasibleNormalArrangements = filter validArrangement . sequenceA
+  where
+    validArrangement = nodupes . elems
+    nodupes []     = True
+    nodupes (y:ys) = notElem y ys
+                  && nodupes ys
+
+
+
+
+{-
 selectArrangement :: [Participant] -> [Arrangement] -> IO (Maybe Arrangement)
 selectArrangement xs
   = sequenceA
@@ -26,7 +41,9 @@ selectArrangement xs
   where
     fromListR :: [a] -> IO a
     fromListR = R.fromList . flip zip (repeat 1)
+-}
 
+{-
 feasibleArrangements :: [Participant] -> [Arrangement] -> Maybe [Arrangement]
 feasibleArrangements xs ys
   = relax (arrangements xs) ys
@@ -37,12 +54,14 @@ feasibleArrangements xs ys
       | isNothing e = relax f $ tail zs
       | otherwise   = e
       where e = f zs
+-}
 
+{--
 arrangements :: [Participant] -> [Arrangement] -> Maybe [Arrangement]
 arrangements xs
   = nonEmpty
   . fmap (filter validArrangement . sequenceA)
-  . arrangementConstraints xs
+  . constraintMap xs
   where
     nonEmpty  Nothing  = Nothing
     nonEmpty (Just []) = Nothing
@@ -51,7 +70,9 @@ arrangements xs
     nodupes []     = True
     nodupes (y:ys) = notElem y ys
                   && nodupes ys
+--}
 
+{-
 arrangementConstraints :: [Participant] -> [Arrangement] -> Maybe (Map Name [Name])
 arrangementConstraints xs ys
   | any (null . snd) constraints' = Nothing
@@ -87,3 +108,4 @@ arrangementConstraints2 xs = do
   (p,y) : (arrangementConstraints2 . fmap (second (delete y)) $ delete (p,ys) xs)
   where
     (p,ys) = minimumBy (comparing (length . snd)) xs
+-}

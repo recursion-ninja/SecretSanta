@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeSynonymInstances #-}
-module HamiltonianCycle () where
+module SecretSanta.CyclicArangement () where
 
 import Control.Applicative ((<$>),(<*>))
 import Control.Arrow (second)
@@ -12,7 +12,7 @@ import Data.Tree
 import SecretSanata.Types
 import SecretSanata.ConstraintMap
 
-instance Arrangementia HamiltonianCycle where
+instance Constrainable CyclicArrangement where
   feasibleArrangements = feasibleHamiltonianCycles
 
 mapToTree :: Eq a => Map a [a] -> Tree a
@@ -46,10 +46,6 @@ cycles n tree
               . cycles2 (n-1)
               ) $ subForest tree
 
-randomHamiltonianCycle :: Eq a -> [Participant] -> [Arangement] -> IO (Maybe HamiltonianCycle)
-randomHamiltonianCycle xs ys
-  = sequenceA . fmap (randomElement . feasibleHamiltonianCycles) $ constraintMap xs ys
-
-feasibleHamiltonianCycles :: Eq a => ConstraintMap -> [HamiltonianCycle]
-feasibleHamiltonianCycles xs = cycles len $ mapToTree xs
+feasibleCyclicArrangements :: Eq a => ConstraintMap -> [CyclicArranagement]
+feasibleCyclicArrangements xs = cycles len $ mapToTree xs
   where len = foldl' (\x y -> x+1) 0 xs

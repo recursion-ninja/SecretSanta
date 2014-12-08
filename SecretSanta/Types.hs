@@ -7,11 +7,12 @@ import SecretSanta.Participant
 import Data.Map (Map)
 import Control.Monad.Random
 
-type HamiltonianCycle = [Name]
-type Arrangement      = Map Name  Name
-type ConstraintMap    = Map Name [Name]
+type ConstraintMap     = Map Name [Name]
+type Arrangement       = Map Name  Name
+type CyclicArrangement = [Name]
 
-class Arrangementia a where
+class Constrainable a where
+  toArrangement        :: a -> Arrangement
   feasibleArrangements :: ConstraintMap -> [a]
   selectArrangement    :: ConstraintMap -> IO a
   selectArrangement = let randomElement = fromList . flip zip (repeat 1)

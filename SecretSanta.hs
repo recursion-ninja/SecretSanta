@@ -23,7 +23,6 @@ main :: IO ()
 main = getArgs
     >>= fmap parseParameters . mapM readFile
     >>= maybe errorMessage
-         
           ( sequenceA
           . fmap (selectArrangement :: ConstraintMap -> IO Arrangement)
           . (constraintMap <$> participants <*> history)

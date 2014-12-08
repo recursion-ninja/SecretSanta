@@ -18,8 +18,9 @@ import           Data.Map hiding         (delete,filter,null)
 import           Data.Traversable        (sequenceA)
 import           Prelude hiding          (lookup)
 
-instance Arrangementia Arrangement where
+instance Constrainable Arrangement where
   feasibleArrangements = feasibleNormalArrangements
+  toArrangement        = id
 
 feasibleNormalArrangements :: ConstraintMap -> [Arrangement]
 feasibleNormalArrangements = filter validArrangement . sequenceA

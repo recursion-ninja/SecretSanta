@@ -6,8 +6,14 @@ import           Data.Map          hiding (delete,filter,null)
 import           Prelude           hiding (lookup)
 import           SecretSanta.Types
 
+
+-- | Takes a list of participants,
+-- |       a list of arrangements,
+-- |   and a list of validation functions 
+-- | to produce a constraint mapping
 constraintMap :: [Participant] -> [Arrangement] -> Maybe ConstraintMap
 constraintMap xs ys
+  -- I might be able to reasonably remove the Maybe wrapper
   | any (null . snd) constraints' = Nothing
   | otherwise = Just $ fromList constraints'
   where
@@ -33,3 +39,10 @@ constraintMap xs ys
 
 (\./) :: (((a -> c1) -> c1) -> b -> c) -> b -> a -> c
 (\./) = flip . (. flip id) -- swing combinator
+
+
+{-- Should start using constraint functions like this
+notGrandparentOf :: [Arrangement] -> Participant -> Participant -> Bool
+notGrandparentOf _ x y = (generation x /= Grandparent)
+                      || (generation y /= Grandchild) 
+--}

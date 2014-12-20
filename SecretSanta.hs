@@ -1,17 +1,17 @@
 module Main where
 
-import SecretSanta.Participant
-import SecretSanta.Arrangement
-import SecretSanta.CyclicArrangement
-import SecretSanta.ConstraintMap
-import SecretSanta.Types
-import Control.Applicative            ((<$>),(<*>),liftA2)
-import Control.Monad                  ((>=>))
-import Data.Map                hiding (filter,null)
+import Control.Applicative                  ((<$>),(<*>),liftA2)
+import Control.Monad                        ((>=>))
+import Data.Map                      hiding (filter,null)
 import Data.Maybe
-import Data.Traversable (sequenceA)
-import Prelude                 hiding (lookup)
+import Data.Traversable                     (sequenceA)
+import Prelude                       hiding (lookup)
 import Safe
+import SecretSanta.Arrangement
+import SecretSanta.ConstraintMap
+import SecretSanta.CyclicArrangement
+import SecretSanta.Participant
+import SecretSanta.Types
 import System.Environment
 
 data Parameters
@@ -25,7 +25,7 @@ main = getArgs
     >>= fmap parseParameters . mapM readFile
     >>= maybe errorMessage
           ( sequenceA
-          . fmap (selectArrangement :: ConstraintMap -> IO (Maybe CyclicArrangement))
+          . fmap (selectArrangement :: ConstraintMap -> IO (Maybe Arrangement))
           . (constraintMap <$> participants <*> history)
         >=> print
           )
@@ -57,8 +57,7 @@ parseParameters xs
                   $ ( tailMay xs
                 >>= headMay
                 >>= parseSecretSantaHistory
-                     )
-
+                    )
 
 errorMessage :: IO ()
 errorMessage
@@ -68,6 +67,6 @@ errorMessage
           [ ""
           , "Failed to parse parameters!"
           , "Expected:"
-          , "./" ++ x ++ " <Participants> <PreviousArangements> <EmailSettings>"
+          , "  ./" ++ x ++ " <Participants> <PreviousArangements> <EmailSettings>"
           , ""
           ]            

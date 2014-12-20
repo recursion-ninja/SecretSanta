@@ -5,6 +5,7 @@ module SecretSanta.Types
 
 import SecretSanta.Participant
 import Data.Map (Map)
+import Data.Traversable (sequenceA)
 import Control.Monad.Random
 
 type ConstraintMap     = Map Name [Name]
@@ -14,6 +15,10 @@ type CyclicArrangement = [Name]
 class Constrainable a where
   toArrangement        :: a -> Arrangement
   feasibleArrangements :: ConstraintMap -> [a]
-  selectArrangement    :: ConstraintMap -> IO a
-  selectArrangement = let randomElement = fromList . flip zip (repeat 1)
-                      in  randomElement . feasibleArrangements
+  selectArrangement    :: ConstraintMap -> IO (Maybe a)
+  selectArrangement xs
+    | null options = return Nothing
+    | otherwise    = sequenceA . Just $ randomElement options
+    where 
+      options       = feasibleArrangements xs
+      randomElement = fromList . flip zip (repeat 1)

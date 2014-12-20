@@ -2,17 +2,24 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module SecretSanta.CyclicArrangement
   ( CyclicArrangement
+  , f 
   ) where
 
-import Control.Applicative ((<$>),(<*>))
+import Debug.Trace (trace)
+import System.IO.Unsafe
+
+import Control.Applicative ((<$>),(<*>),(<|>))
 import Control.Arrow (second)
+--import Control.Monad.Random
+import Control.Monad (liftM)
 import Data.List     (delete,find,minimumBy)
-import Data.Map      (assocs,fromList)
+import Data.Map      ((!),assocs,fromList)
 import Data.Foldable (foldl')
 import Data.Maybe    (mapMaybe)
 import Data.Ord      (comparing)
 import Data.Tree
 import SecretSanta.Types
+import System.Random.Shuffle
 
 
 -- | Represents a valid secret santa arrangement
@@ -70,3 +77,43 @@ cycles n tree
               . filter (not.null)
               . cycles (n-1)
               ) $ subForest tree
+
+{--}
+f :: ConstraintMap -> IO (Maybe CyclicArrangement)
+f xs = shuffleM xs'
+   >>= fmap coalesce
+     . (\x -> trace (show $ unsafePerformIO x) x)
+     . mapM ( liftM . liftM . (:)
+          <$> fst
+          <*> (top <$> fst
+                   <*> const depth
+                   <*> flip  strip xs' . fst))
+
+  where
+    xs'   = assocs xs
+    depth = length xs' - 1
+    top :: Name -> Int -> [(Name,[Name])] -> IO (Maybe CyclicArrangement)
+    top _ _ [] = return Nothing
+    top e 1 m
+      | e `elem` options = return $ Just [lastPerson]
+      | otherwise        = return Nothing
+      where
+        options    = xs ! lastPerson
+        lastPerson = fst $ head m
+    top e n m
+        = shuffleM m
+      >>= fmap coalesce
+        . mapM (liftM . liftM . (:)
+            <$> fst
+            <*>
+                    (top <$> const e
+                         <*> const (n-1)
+                         <*> flip strip m . fst)
+               )
+
+strip :: Name -> [(Name,[Name])] -> [(Name,[Name])]
+strip x = fmap (second (delete x)) . filter ((/=x).fst)
+
+coalesce = foldr (<|>) Nothing
+
+{--}

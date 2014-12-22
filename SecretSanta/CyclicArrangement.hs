@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module SecretSanta.CyclicArrangement
   ( CyclicArrangement
-  , f 
+  , selectCyclicArrangement
   ) where
 
 import Debug.Trace (trace)
@@ -13,7 +13,7 @@ import Control.Arrow (second)
 --import Control.Monad.Random
 import Control.Monad (liftM)
 import Data.List     (delete,find,minimumBy)
-import Data.Map      ((!),assocs,fromList)
+import Data.Map      ((!),assocs,empty,fromList,keys)
 import Data.Foldable (foldl')
 import Data.Maybe    (mapMaybe)
 import Data.Ord      (comparing)
@@ -27,7 +27,7 @@ import System.Random.Shuffle
 instance Constrainable CyclicArrangement where
   feasibleArrangements = feasibleCyclicArrangements
   toArrangement        = cycleToMap
-
+  selectArrangement    = selectCyclicArrangement
 
 -- | Converts a CyclicArrangement to a normal Arrangement
 cycleToMap :: CyclicArrangement -> Arrangement
@@ -78,42 +78,52 @@ cycles n tree
               . cycles (n-1)
               ) $ subForest tree
 
-{--}
-f :: ConstraintMap -> IO (Maybe CyclicArrangement)
-f xs = shuffleM xs'
-   >>= fmap coalesce
-     . (\x -> trace (show $ unsafePerformIO x) x)
-     . mapM ( liftM . liftM . (:)
-          <$> fst
-          <*> (top <$> fst
-                   <*> const depth
-                   <*> flip  strip xs' . fst))
+-- | Augmented depth-limited search
+-- | over a randomization of the hamiltonian cycle search space.
+-- | Returns the first valid hamiltonian cycle found during the random search
+-- | /Ω(n)/ & /O(n!)/
+-- | Best Case Complexity:
+-- |   Linear time to generate a valid solution in the first few attempts
+-- | Worst Case Complexity:
+-- |   Factorial time to generate all possible solutions
+-- |   and deterimine none satisfy constraints
 
+selectCyclicArrangement :: ConstraintMap -> IO (Maybe CyclicArrangement)
+selectCyclicArrangement originalConstraints =
+  selectCyclicArrangement' originalConstraints 0 root
   where
-    xs'   = assocs xs
-    depth = length xs' - 1
-    top :: Name -> Int -> [(Name,[Name])] -> IO (Maybe CyclicArrangement)
-    top _ _ [] = return Nothing
-    top e 1 m
-      | e `elem` options = return $ Just [lastPerson]
-      | otherwise        = return Nothing
+    height = length (keys originalConstraints) - 1
+    root   = mostConstraintedKey originalConstraints
+    selectCyclicArrangement' :: ConstraintMap -> Int -> Name -> IO (Maybe CyclicArrangement)
+    selectCyclicArrangement' constraints depth key 
+      |  constraints == empty
+      || atTerminalDepth
+      && not validTerminalNode = return $ Nothing
+      |  atTerminalDepth
+      &&     validTerminalNode = return $ Just [key]
+      | otherwise = shuffleM branches
+                >>= fmap (fmap (key:) . coalesce)
+                  . mapM (selectCyclicArrangement'
+                           (reduceReceipiants constraints key)
+                           (depth + 1)
+                         )
       where
-        options    = xs ! lastPerson
-        lastPerson = fst $ head m
-    top e n m
-        = shuffleM m
-      >>= fmap coalesce
-        . mapM (liftM . liftM . (:)
-            <$> fst
-            <*>
-                    (top <$> const e
-                         <*> const (n-1)
-                         <*> flip strip m . fst)
-               )
+        atTerminalDepth    = depth == height
+        validTerminalNode  = root `elem` originalRecipients
+        originalRecipients = originalConstraints ! key
+        branches           = constraints ! key
+        childMay x = selectCyclicArrangement'
+                      (reduceReceipiants constraints key)
+                      (depth + 1)
+                       x
 
-strip :: Name -> [(Name,[Name])] -> [(Name,[Name])]
-strip x = fmap (second (delete x)) . filter ((/=x).fst)
+mostConstraintedKey :: ConstraintMap -> Name
+mostConstraintedKey = fst
+                    . minimumBy (comparing (length . snd))
+                    . assocs
 
+reduceReceipiants :: ConstraintMap -> Name -> ConstraintMap
+reduceReceipiants constraints key = fmap (delete key) constraints
+
+coalesce :: [Maybe a] -> Maybe a
 coalesce = foldr (<|>) Nothing
-
-{--}

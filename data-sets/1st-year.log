@@ -1,0 +1,16 @@
+[fromList [ ("Barb"   ,"Jack"   )
+          , ("Ben"    ,"Sue"    )
+          , ("Beth"   ,"Jane"   )
+          , ("Bill"   ,"Harry"  )
+          , ("Bob"    ,"Sam"    )
+          , ("Harry"  ,"Beth"   )
+          , ("Jack"   ,"Tom"    )
+          , ("Jane"   ,"Richard")
+          , ("Jill"   ,"Bob"    )
+          , ("John"   ,"Bill"   )
+          , ("Richard","Ben"    )
+          , ("Sam"    ,"John"   )
+          , ("Sue"    ,"Barb"   )
+          , ("Tom"    ,"Jill"   )
+          ]
+]

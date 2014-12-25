@@ -1,0 +1,17 @@
+[ Participant "John"    Family "Doe"        Child       "emailz"
+, Participant "Jane"    Family "Doe"        Child       "emailz"
+, Participant "Jack"    Family "Doe"        Grandchild  "emailz"
+, Participant "Jill"    Family "Doe"        Grandchild  "emailz"
+
+, Participant "Sam"     Family "Smith"      Child       "emailz"
+, Participant "Sue"     Family "Smith"      Child       "emailz"
+, Participant "Tom"     Family "Smith"      Grandchild  "emailz"
+, Participant "Richard" Family "Smith"      Grandchild  "emailz"
+, Participant "Harry"   Family "Smith"      Grandchild  "emailz"
+
+, Participant "Bill"    Family "Johnson"    Child       "emailz"
+, Participant "Beth"    Family "Johnson"    Child       "emailz"
+, Participant "Barb"    Family "Johnson"    Grandchild  "emailz"
+, Participant "Ben"     Family "Johnson"    Grandchild  "emailz"
+, Participant "Bob"     Family "Johnson"    Grandchild  "emailz"
+]

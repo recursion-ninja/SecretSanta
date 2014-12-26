@@ -11,11 +11,8 @@ import           SecretSanta.Types
 -- |       a list of arrangements,
 -- |   and a list of validation functions 
 -- | to produce a constraint mapping
-constraintMap :: [Participant] -> [Arrangement] -> Maybe ConstraintMap
-constraintMap xs ys
-  -- I might be able to reasonably remove the Maybe wrapper
-  | any (null . snd) constraints' = Nothing
-  | otherwise = Just $ fromList constraints'
+constraintMap :: [Participant] -> [Arrangement] -> ConstraintMap
+constraintMap xs ys = fromList constraints'
   where
     constraints' = fmap (name &&& fmap name . possibleRecipients) xs
     possibleRecipients z = filter (satisfiesConstraints z) xs 

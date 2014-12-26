@@ -5,13 +5,8 @@ module SecretSanta.CyclicArrangement
   , selectCyclicArrangement
   ) where
 
-import Debug.Trace (trace)
-import System.IO.Unsafe
-
 import Control.Applicative ((<$>),(<*>),(<|>))
 import Control.Arrow (second)
---import Control.Monad.Random
-import Control.Monad (liftM)
 import Control.Monad.State
 import Data.List     (delete,find,minimumBy)
 import Data.Map      ((!),assocs,empty,fromList,keys)
@@ -22,7 +17,6 @@ import Data.Tree
 import SecretSanta.Types
 import System.Random
 import System.Random.Shuffle
-
 
 -- | Represents a valid secret santa arrangement
 -- | which is also a Hamiltonian Cycle
@@ -107,6 +101,8 @@ selectCyclicArrangement originalConstraints =
     selectCyclicArrangement' :: RandomGen gen => ConstraintMap -> Int -> Name -> gen -> Maybe CyclicArrangement
     selectCyclicArrangement' constraints depth key gen
       |  constraints == empty
+      || not atTerminalDepth
+      && null branches
       || atTerminalDepth
       && not validTerminalNode = Nothing
       |  atTerminalDepth
@@ -116,15 +112,15 @@ selectCyclicArrangement originalConstraints =
                   . map branchMay
                   $ zip branches' branchGens
       where
-        atTerminalDepth     = depth == height
-        validTerminalNode   = root `elem` originalRecipients
-        originalRecipients  = originalConstraints ! key
-        prependKey          = fmap (key:)
-        branchMay           = uncurry $ selectCyclicArrangement' constraints' (depth + 1)
-        branches            = constraints ! key
-        branches'           = shuffle' branches branchCount shuffleGen
-        branchCount         = length branches
-        constraints'        = reduceReceipiants key constraints
+        atTerminalDepth         = depth == height
+        validTerminalNode       = root `elem` originalRecipients
+        originalRecipients      = originalConstraints ! key
+        prependKey              = fmap (key:)
+        branchMay               = uncurry $ selectCyclicArrangement' constraints' (depth + 1)
+        branches                = constraints ! key
+        branches'               = shuffle' branches branchCount shuffleGen
+        branchCount             = length branches
+        constraints'            = reduceReceipiants key constraints
         (branchGens,shuffleGen) = runState (replicateM branchCount (state split >> get)) gen
 
 mostConstraintedKey :: ConstraintMap -> Name
@@ -137,32 +133,3 @@ reduceReceipiants key = fmap (delete key)
 
 coalesce :: [Maybe a] -> Maybe a
 coalesce = foldr (<|>) Nothing
-
-
-{--
-selectCyclicArrangementOldIO :: ConstraintMap -> IO (Maybe CyclicArrangement)
-selectCyclicArrangement originalConstraints =
-  selectCyclicArrangement' originalConstraints 0 root
-  where
-    height = pred . length $ keys originalConstraints
-    root = mostConstraintedKey originalConstraints
-    selectCyclicArrangement' :: ConstraintMap -> Int -> Name -> IO (Maybe CyclicArrangement)
-    selectCyclicArrangement' constraints depth key 
-      |  constraints == empty
-      || atTerminalDepth
-      && not validTerminalNode = return $ Nothing
-      |  atTerminalDepth
-      &&     validTerminalNode = return $ Just [key]
-      | otherwise = shuffleM branches
-                >>= fmap (prependKey . coalesce)
-                  . mapM (selectCyclicArrangement'
-                           (reduceReceipiants key constraints)
-                           (depth + 1)
-                         )
-      where
-        atTerminalDepth    = depth == height
-        validTerminalNode  = root `elem` originalRecipients
-        originalRecipients = originalConstraints ! key
-        branches           = constraints ! key
-        prependKey         = fmap (key:)
---}

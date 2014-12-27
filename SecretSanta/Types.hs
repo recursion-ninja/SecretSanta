@@ -12,6 +12,12 @@ type ConstraintMap     = Map Name [Name]
 type Arrangement       = Map Name  Name
 type CyclicArrangement = [Name]
 
+data Parameters
+   = Parameters
+   { participants :: ![Participant]
+   , history      :: ![Arrangement]
+   } deriving (Show)
+
 class Constrainable a where
   toArrangement        :: a -> Arrangement
   feasibleArrangements :: ConstraintMap -> [a]

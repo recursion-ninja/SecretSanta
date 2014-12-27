@@ -1,46 +1,25 @@
 module Main where
 
-import Control.Applicative                  ((<$>),(<*>),liftA2)
+import Control.Applicative                  (liftA2)
 import Control.Monad                        ((>=>))
 import Data.Map                      hiding (filter,null)
 import Data.Maybe
-import Data.Traversable                     (sequenceA)
 import Prelude                       hiding (lookup)
 import Safe
 import SecretSanta.Arrangement
-import SecretSanta.ConstraintMap
-import SecretSanta.CyclicArrangement
 import SecretSanta.Participant
+import SecretSanta.Solver
 import SecretSanta.Types
 import System.Environment
-
-data Parameters
-   = Parameters
-   { participants :: ![Participant]
-   , history      :: ![Arrangement]
-   } deriving (Show)
 
 main :: IO ()
 main = getArgs
     >>= fmap parseParameters . mapM readFile
     >>= maybe errorMessage
-          ( sequenceA
-          . fmap (fmap (fmap toArrangement) . (selectArrangement :: ConstraintMap -> IO (Maybe CyclicArrangement)))
-          . (constraintMap <$> participants <*> history)
+          ( solveSecretSanta
+        >=> id
         >=> print
           )
-
-
-main2 :: IO ()
-main2 = getArgs
-   >>= mapM readFile --zipWithM ($) [readFile, readFile]
---   >>= print . (parseParameters >=> formulateArrangements)
---   >>= print . (parseParameters >=> uncurry constraints . \(Parameters x y) -> (x,y) )
---   >>= print . (parseParameters >=> uncurry arrangements . \(Parameters x y) -> (x,y) )
---   >>= print . fmap (concatMap (fmap snd . filter ((=="Sandy").fst) . assocs)) 
---     . (parseParameters >=> uncurry arrangements . \(Parameters x y) -> (x,y) )
---   >>= selectArrangement . parseParameters
-   >>= print
 
 parseParticipants :: String -> Maybe [Participant]
 parseParticipants = readMay
@@ -69,4 +48,4 @@ errorMessage
           , "Expected:"
           , "  ./" ++ x ++ " <Participants> <PreviousArangements> <EmailSettings>"
           , ""
-          ]            
+          ]

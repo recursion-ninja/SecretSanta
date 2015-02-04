@@ -17,12 +17,12 @@ solveSecretSanta (Parameters xs ys) = solveConstraints xs ys Nothing
 -- | Recursively relaxes the history requirements,
 -- | Returning the first feasible arrangment subject to maximal history constraints
 solveConstraints :: [Participant] -> [Arrangement] -> Maybe Arrangement -> IO (Maybe Arrangement)
-solveConstraints people history prev
+solveConstraints people archive prev
   | isJust prev  = return prev
-  | null history = result
-  | otherwise    = result >>= solveConstraints people (tail history)
+  | null archive = result
+  | otherwise    = result >>= solveConstraints people (tail archive)
   where
-    constraints = constraintMap people history
+    constraints = constraintMap people archive
     result      = getArrangement constraints
 
 -- | Maybe select a uniformly random arrangement

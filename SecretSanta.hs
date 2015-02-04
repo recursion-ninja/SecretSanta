@@ -1,10 +1,10 @@
 module Main where
 
-import Control.Applicative                  (liftA2)
-import Control.Monad                        ((>=>))
-import Data.Map                      hiding (filter,null)
+import Control.Applicative            (liftA2)
+import Control.Monad                  ((>=>))
+import Data.Map                hiding (filter,null)
 import Data.Maybe
-import Prelude                       hiding (lookup)
+import Prelude                 hiding (lookup)
 import Safe
 import SecretSanta.Arrangement
 import SecretSanta.Participant
@@ -17,15 +17,9 @@ main = getArgs
     >>= fmap parseParameters . mapM readFile
     >>= maybe errorMessage
           ( solveSecretSanta
-        >=> id
+--        >=> id
         >=> print
           )
-
-parseParticipants :: String -> Maybe [Participant]
-parseParticipants = readMay
-
-parseSecretSantaHistory :: String -> Maybe [Arrangement]
-parseSecretSantaHistory = readMay
 
 parseParameters :: [String] -> Maybe Parameters
 parseParameters xs
@@ -37,6 +31,12 @@ parseParameters xs
                 >>= headMay
                 >>= parseSecretSantaHistory
                     )
+
+parseParticipants :: String -> Maybe [Participant]
+parseParticipants = readMay
+
+parseSecretSantaHistory :: String -> Maybe [Arrangement]
+parseSecretSantaHistory = readMay
 
 errorMessage :: IO ()
 errorMessage

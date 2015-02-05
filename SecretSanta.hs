@@ -15,7 +15,7 @@ import System.Environment
 main :: IO ()
 main = getArgs
     >>= fmap parseParameters . mapM readFile
-    >>= maybe errorMessage
+    >>= maybe errorParametersMessage
           ( solveSecretSanta
 --        >=> id
         >=> print
@@ -38,8 +38,8 @@ parseParticipants = readMay
 parseSecretSantaHistory :: String -> Maybe [Arrangement]
 parseSecretSantaHistory = readMay
 
-errorMessage :: IO ()
-errorMessage
+errorParametersMessage :: IO ()
+errorParametersMessage
     = getProgName
   >>= \x -> putStr
           $ unlines

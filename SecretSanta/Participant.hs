@@ -3,7 +3,7 @@ module SecretSanta.Participant where
 type Name = String
 
 newtype Family = Family String
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord)
 
 data Generation
    = Grandparent
@@ -39,3 +39,6 @@ instance Read Family where
       | ("Family", t ) <- lex str
       , (x,t')         <- reads t
       ]
+
+instance Show Family where
+  show (Family f) = f

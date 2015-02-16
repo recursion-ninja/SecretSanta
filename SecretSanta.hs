@@ -1,8 +1,8 @@
 module Main where
 
-import Control.Applicative            (liftA2)
+import Control.Applicative            (liftA3)
 import Control.Monad                  ((>=>))
-import Data.Map                hiding (filter,null)
+--import Data.Map                hiding (filter,null)
 import Data.Maybe
 import Prelude                 hiding (lookup)
 import Safe
@@ -30,8 +30,7 @@ parseParameters xs
     emailSetting' = xs !? 1
                 >>= parseEmailSettings
     arrangements' = xs !? 2
-                >>= headMay
-                >>= parseSecretSantaHistory
+                >>= Just . parseSecretSantaHistory
                 >>= whenNothingJust []
 
 parseParticipants :: String -> Maybe [Participant]
@@ -40,7 +39,7 @@ parseParticipants = readMay
 parseSecretSantaHistory :: String -> Maybe [Arrangement]
 parseSecretSantaHistory = readMay
 
-parseEmailSettings :: String -> Maybe EmailSetting
+parseEmailSettings :: String -> Maybe EmailSettings
 parseEmailSettings = readMay
 
 errorParametersMessage :: IO ()

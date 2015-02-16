@@ -17,8 +17,8 @@ type CyclicArrangement = [Name]
 data Parameters
    = Parameters
    { participants :: ![Participant]
-   , history      :: ![Arrangement]
    , sendmail     :: !EmailSettings
+   , history      :: ![Arrangement]
    } deriving (Show)
 
 data EmailSettings

@@ -12,7 +12,7 @@ import SecretSanta.Types
 -- | Recursively relaxes the arrangement history constraints if no valid solution exists.
 -- | Will return Nothing iff there is no valid arrangement regardless of the arrangment histories
 solveSecretSanta :: Parameters -> IO (Maybe Arrangement)
-solveSecretSanta (Parameters xs ys) = solveConstraints xs ys Nothing
+solveSecretSanta (Parameters xs _ ys) = solveConstraints xs ys Nothing
 
 -- | Recursively relaxes the history requirements,
 -- | Returning the first feasible arrangment subject to maximal history constraints

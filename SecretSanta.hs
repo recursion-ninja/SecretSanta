@@ -14,29 +14,34 @@ import System.Environment
 
 main :: IO ()
 main = getArgs
-    >>= fmap parseParameters . mapM readFile
-    >>= maybe errorParametersMessage
-          ( solveSecretSanta
+   >>= fmap parseParameters . mapM readFile
+   >>= maybe errorParametersMessage
+           ( solveSecretSanta
 --        >=> id
-        >=> print
-          )
+         >=> print
+           )
 
 parseParameters :: [String] -> Maybe Parameters
 parseParameters xs
-  = liftA2 Parameters participants' arrangements'
+  = liftA3 Parameters participants' emailSetting' arrangements'
   where
-    participants' = headMay xs >>= parseParticipants
-    arrangements' = Just . fromMaybe [empty]
-                  $ ( tailMay xs
+    participants' = xs !? 0
+                >>= parseParticipants
+    emailSetting' = xs !? 1
+                >>= parseEmailSettings
+    arrangements' = xs !? 2
                 >>= headMay
                 >>= parseSecretSantaHistory
-                    )
+                >>= whenNothingJust []
 
 parseParticipants :: String -> Maybe [Participant]
 parseParticipants = readMay
 
 parseSecretSantaHistory :: String -> Maybe [Arrangement]
 parseSecretSantaHistory = readMay
+
+parseEmailSettings :: String -> Maybe EmailSetting
+parseEmailSettings = readMay
 
 errorParametersMessage :: IO ()
 errorParametersMessage
@@ -46,6 +51,16 @@ errorParametersMessage
           [ ""
           , "Failed to parse parameters!"
           , "Expected:"
-          , "  ./" ++ x ++ " <Participants> <PreviousArangements> <EmailSettings>"
+          , "  ./" ++ x ++ " <Participants> <EmailSettings> <PreviousArangements>"
           , ""
           ]
+
+whenNothingJust :: a -> Maybe a -> Maybe a
+whenNothingJust = (Just .) . fromMaybe
+
+(!?) :: [a] -> Int -> Maybe a
+(!?) xs n
+  |  null xs
+  || n <  0    = Nothing
+  |  n == 0    = Just $ head xs
+  |  otherwise = tail xs !? (n-1)

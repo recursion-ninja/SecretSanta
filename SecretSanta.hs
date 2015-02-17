@@ -29,9 +29,9 @@ parseParameters xs
                 >>= parseParticipants
     emailSetting' = xs !? 1
                 >>= parseEmailSettings
-    arrangements' = xs !? 2
-                >>= Just . parseSecretSantaHistory
-                >>= whenNothingJust []
+    arrangements' = whenNothingJust []
+                  $ xs !? 2
+                >>= parseSecretSantaHistory
 
 parseParticipants :: String -> Maybe [Participant]
 parseParticipants = readMay

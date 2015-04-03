@@ -4,38 +4,63 @@ module SecretSanta.Mailing
 
 import SecretSanta.Arrangement
 import SecretSanta.Participant
+import SecretSanta.Types
+import Control.Applicative
+import Data.Text         (pack)
+import Data.Text.Lazy    (fromStrict)
 import Data.List
+import Data.Map          (assocs,mapKeys)
 import Data.Maybe
+import Network.Mail.Mime (Part())
+import Network.Mail.SMTP
 
 -- | Notifies each participant of thier recipiant.
 -- | Returns a Maybe list of failed notifications
 -- | Nothing indicates a success.
 
-notifyParticipants :: [Participant] -> Arrangement -> IO (Maybe [String])
-notifyParticipants people = const $ return Nothing
+-- ERRORS HERE, almost correct
+notifyParticipants :: Parameters -> Arrangement -> IO ()
+notifyParticipants parameters
+  = mapM_ (sendMail . makeMail) . assocs
+  . fmap toParticipant . mapKeys toParticipant 
+  where
+    people         = participants parameters
+    settings       = mailing parameters 
+    toParticipant  = fromJust . findParticipant people
+    sendMail       = sendMailWithLogin' <$> hostname <*> port <*> username <*> password $ settings
+    fromAddress    = Address <$> Just . pack . alias <*> pack . username $ settings
+    toAddress      = Address <$> Just . pack . (\p -> name p ++ " " ++ (show . family) p) <*> pack . email
+    makeMail (x,y) = simpleMail
+                       fromAddress
+                       [toAddress x] [] []
+                       (pack "Secret Santa")
+                       [craftMessageBody people (name x, name y)]
 
 -- | 
 
-craftMessageBody :: [Participant] -> (Name,Name) -> String
+craftMessageBody :: [Participant] -> (Name,Name) -> Part
 craftMessageBody people (from,to)
-  =
-  unlines
+  = plainTextPart
+  . fromStrict
+  . pack
+  $ doubleUnlines
   [ salutation from
   , message
   , directive
-  , show to ++ (show . email) to' 
+  , recipient
   , contactPreamble
   , contactTable people
   ]
   where
     -- Slightly dangerous, fromJust should never throw exceptions
-    from' = fromJust $ findParticipant from people
-    to'   = fromJust $ findParticipant to   people
+    from' = fromJust $ findParticipant people from
+    to'   = fromJust $ findParticipant people to
+    recipient = unwords [ show to, (show . email) to' ]
 
-findParticipant _    [] = Nothing
-findParticipant needle (test:haystack)
+findParticipant [] _ = Nothing
+findParticipant (test:haystack) needle
   | name test == needle = Just test
-  | otherwise = findParticipant needle haystack 
+  | otherwise = findParticipant haystack needle
 
 salutation addressee = "Hello " ++ addressee ++ ","
   
@@ -44,7 +69,7 @@ message = unwords
   , "rather then everyone buying presents for everyone else,"
   , "which typically boils down to a gift card exchange,"
   , "each \"adult\" family member will purchase gift(s) for one other adult"
-  , "not from thier imediate nulcear family."
+  , "not from thier immediate nuclear family."
   , "Each person's secret santa was chosen randomly"
   , "and assured not to be part of their nuclear family."
   , "Additionally the grandparents will not get a grandchild"

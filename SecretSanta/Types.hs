@@ -17,16 +17,17 @@ type CyclicArrangement = [Name]
 data Parameters
    = Parameters
    { participants :: ![Participant]
-   , sendmail     :: !EmailSettings
+   , mailing      :: !EmailSettings
    , history      :: ![Arrangement]
    } deriving (Show)
 
 data EmailSettings
    = EmailSettings
-   { hostname :: !HostName
-   , port     :: !PortNumber
+   { alias    :: !String
    , username :: !UserName
    , password :: !Password
+   , hostname :: !HostName
+   , port     :: !PortNumber
    } deriving (Show)
 
 class Constrainable a where
@@ -42,20 +43,23 @@ class Constrainable a where
 
 instance Read EmailSettings where
   readsPrec _ str
-    = [ ( EmailSettings parsedHostName
-               ( toEnum parsedPort )
+    = [ ( EmailSettings parsedAlias
                         parsedUserName
                         parsedPassword
-        , t''''''''
+                        parsedHostName
+               ( toEnum parsedPort )
+        , t''''''''''
         )
-      | ("EmailSettings", t        ) <- lex   str
-      , ("HostName"     , t'       ) <- lex   t
-      , ( parsedHostName, t''      ) <- reads t'
-      , ("PortNumber"   , t'''     ) <- lex   t''
-      , ( parsedPort    , t''''    ) <- reads t'''
-      , ("UserName"     , t'''''   ) <- lex   t''''
-      , ( parsedUserName, t''''''  ) <- reads t'''''
-      , ("Password"     , t''''''' ) <- lex   t''''''
-      , ( parsedPassword, t'''''''') <- reads t'''''''
+      | ("EmailSettings", t          ) <- lex   str
+      , ("Alias"        , t'         ) <- lex   t
+      , ( parsedAlias   , t''        ) <- reads t'
+      , ("UserName"     , t'''       ) <- lex   t''
+      , ( parsedUserName, t''''      ) <- reads t'''
+      , ("Password"     , t'''''     ) <- lex   t''''
+      , ( parsedPassword, t''''''    ) <- reads t'''''
+      , ("HostName"     , t'''''''   ) <- lex   t''''''
+      , ( parsedHostName, t''''''''  ) <- reads t'''''''
+      , ("PortNumber"   , t''''''''' ) <- lex   t''''''''
+      , ( parsedPort    , t'''''''''') <- reads t'''''''''
       ]
 

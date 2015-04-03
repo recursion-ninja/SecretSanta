@@ -7,6 +7,7 @@ import Data.Maybe
 import Prelude                 hiding (lookup)
 import Safe
 import SecretSanta.Arrangement
+import SecretSanta.Mailing
 import SecretSanta.Participant
 import SecretSanta.Solver
 import SecretSanta.Types
@@ -16,9 +17,8 @@ main :: IO ()
 main = getArgs
    >>= fmap parseParameters . mapM readFile
    >>= maybe errorParametersMessage
-           ( solveSecretSanta
---        >=> id
-         >=> print
+           (\x -> solveSecretSanta x
+              >>= notifyParticipants x . fromJust
            )
 
 parseParameters :: [String] -> Maybe Parameters

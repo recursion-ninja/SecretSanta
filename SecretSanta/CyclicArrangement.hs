@@ -16,7 +16,7 @@ import Data.Ord      (comparing)
 import Data.Tree
 import SecretSanta.Types
 import System.Random
-import System.Random.Shuffle
+import System.Random.Shuffle (shuffle')
 
 -- | Represents a valid secret santa arrangement
 -- | which is also a Hamiltonian Cycle

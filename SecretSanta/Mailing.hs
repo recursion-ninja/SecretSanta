@@ -21,13 +21,13 @@ import Network.Mail.SMTP
 -- ERRORS HERE, almost correct
 notifyParticipants :: Parameters -> Arrangement -> IO ()
 notifyParticipants parameters
-  = mapM_ (sendMail . makeMail) . assocs
+  = mapM_ (dispatchMail . makeMail) . assocs
   . fmap toParticipant . mapKeys toParticipant 
   where
     people         = participants parameters
     settings       = mailing parameters 
     toParticipant  = fromJust . findParticipant people
-    sendMail       = sendMailWithLogin' <$> hostname <*> port <*> username <*> password $ settings
+    dispatchMail   = sendMailWithLogin' <$> hostname <*> port <*> username <*> password $ settings
     fromAddress    = Address <$> Just . pack . alias <*> pack . username $ settings
     toAddress      = Address <$> Just . pack . (\p -> name p ++ " " ++ (show . family) p) <*> pack . email
     makeMail (x,y) = simpleMail
@@ -53,17 +53,20 @@ craftMessageBody people (from,to)
   ]
   where
     -- Slightly dangerous, fromJust should never throw exceptions
-    from' = fromJust $ findParticipant people from
+--    from' = fromJust $ findParticipant people from
     to'   = fromJust $ findParticipant people to
     recipient = unwords [ show to, (show . email) to' ]
 
+findParticipant :: [Participant] -> Name -> Maybe Participant
 findParticipant [] _ = Nothing
 findParticipant (test:haystack) needle
   | name test == needle = Just test
   | otherwise = findParticipant haystack needle
 
+salutation :: [Char] -> [Char]
 salutation addressee = "Hello " ++ addressee ++ ","
   
+message :: String
 message = unwords
   [ "Merry Christmas! For this years Christmas,"
   , "rather then everyone buying presents for everyone else,"
@@ -76,8 +79,10 @@ message = unwords
   , "as thier secret santa recipient."
   ]
 
+directive :: String
 directive = "Your secret santa gift recipiant is: "
 
+contactPreamble :: String
 contactPreamble = unwords
   [ "Here is a list of all the Secret Santa participants,"
   , "thier associated nuclear family, and email address:"
@@ -89,9 +94,9 @@ contactTable = unlines . fmap contactRow
 contactRow :: Participant -> String
 contactRow p = uncolumns
   [ name  p  
-  , show $ family p
   , email p
   ]
 
+doubleUnlines, uncolumns :: [String] -> String
 doubleUnlines = intercalate "\n\n"
 uncolumns     = intercalate "\t"

@@ -1,10 +1,8 @@
 module Main where
 
-import Control.Applicative            (liftA3)
-import Control.Monad                  ((>=>))
---import Data.Map                hiding (filter,null)
+import Control.Applicative     (liftA3)
 import Data.Maybe
-import Prelude                 hiding (lookup)
+import Prelude
 import Safe
 import SecretSanta.Arrangement
 import SecretSanta.Mailing
@@ -16,31 +14,33 @@ import System.Environment
 main :: IO ()
 main = getArgs
    >>= fmap parseParameters . mapM readFile
-   >>= maybe errorParametersMessage
-           (\x -> solveSecretSanta x
-              >>= notifyParticipants x . fromJust
-           )
+   >>= maybe errorParametersMessage performLottery
+
+performLottery :: Parameters -> IO ()
+performLottery params = do 
+  lot <- solveSecretSanta params
+  case lot of
+    Nothing -> putStrLn $ "Constraints unsatisfiable!" ++ show params
+    Just x  -> notifyParticipants params x
+            >> print x
 
 parseParameters :: [String] -> Maybe Parameters
 parseParameters xs
   = liftA3 Parameters participants' emailSetting' arrangements'
   where
-    participants' = xs !? 0
-                >>= parseParticipants
-    emailSetting' = xs !? 1
-                >>= parseEmailSettings
+    participants' = xs !? 0 >>= parseParticipants
+    emailSetting' = xs !? 1 >>= parseEmailSettings
     arrangements' = whenNothingJust []
-                  $ xs !? 2
-                >>= parseSecretSantaHistory
+                  $ xs !? 2 >>= parseSecretSantaHistory
 
 parseParticipants :: String -> Maybe [Participant]
 parseParticipants = readMay
 
-parseSecretSantaHistory :: String -> Maybe [Arrangement]
-parseSecretSantaHistory = readMay
-
 parseEmailSettings :: String -> Maybe EmailSettings
 parseEmailSettings = readMay
+
+parseSecretSantaHistory :: String -> Maybe [Arrangement]
+parseSecretSantaHistory = readMay
 
 errorParametersMessage :: IO ()
 errorParametersMessage

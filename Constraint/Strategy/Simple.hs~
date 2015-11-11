@@ -1,0 +1,31 @@
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+module Constraint.Arrangement
+  ( Arrangement
+  , feasibleArrangements
+  , selectArrangement
+  ) where
+
+--import           SecretSanta.Types
+--import           SecretSanta.ConstraintMap
+--import           Control.Arrow           ((&&&),second)
+--import qualified Control.Monad.Random    as R
+--import           Data.Ord                (comparing)
+--import           Data.List               (delete,minimumBy)
+import           Constraint.Class
+import           Data.Map hiding         (delete,filter,null)
+--import           Data.Maybe              (isNothing)
+import           Data.Traversable        (sequenceA)
+import           Prelude hiding          (lookup)
+
+instance Eq a => Constrainable (Arrangement a) where
+  feasibleArrangements = feasibleNormalArrangements
+  toArrangement        = id
+
+feasibleNormalArrangements :: ConstraintMap a -> [Arrangement a]
+feasibleNormalArrangements = filter validArrangement . sequenceA
+  where
+    validArrangement = nodupes . elems
+    nodupes []     = True
+    nodupes (y:ys) = notElem y ys
+                  && nodupes ys

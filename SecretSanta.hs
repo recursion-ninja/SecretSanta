@@ -2,6 +2,7 @@ module Main where
 
 import Control.Applicative     (liftA3)
 import Data.Maybe
+import File.Format.Participant.Internal
 import Prelude
 import Safe
 import SecretSanta.Arrangement

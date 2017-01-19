@@ -1,0 +1,12 @@
+flags: {}
+
+extra-package-dbs: []
+
+packages:
+- '.'
+
+system-ghc: false
+
+extra-deps:
+
+resolver: lts-7.15

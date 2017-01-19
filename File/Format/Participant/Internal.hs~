@@ -1,0 +1,28 @@
+
+
+module File.Format.Participant.Internal where
+
+import Data.List.NonEmpty      (NonEmpty(), some1)
+import SecretSanta.Participant
+import Text.Megaparsec
+import Text.Megaparsec.Char
+
+
+nameDefinition :: (MonadParsec e s m, Token s ~ Char) => m (NonEmpty Char)
+nameDefinition = space *> some1 (satisfying (not . )) <* eol
+
+
+-- | @anythingTill end@ consumes zero or more characters until @end@ is matched, leaving @end@ in the stream
+anythingTill :: (MonadParsec e s m, Token s ~ Char) => m a -> m String
+anythingTill c = do
+    ahead <- optional . try $ lookAhead c
+    case ahead of
+      Just _  -> pure []
+      Nothing -> somethingTill c
+
+
+-- | @somethingTill end@ consumes one or more characters until @end@ is matched, leaving @end@ in the stream
+somethingTill :: (MonadParsec e s m, Token s ~ Char) => m a -> m (NonEmpty Char)
+somethingTill c = do
+    _ <- notFollowedBy c
+    (:|) <$> anyChar <*> anythingTill c 

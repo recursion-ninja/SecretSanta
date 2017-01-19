@@ -4,25 +4,27 @@ type Name = String
 
 newtype Family = Family String
   deriving (Eq,Ord)
-
+{-
 data Generation
    = Grandparent
    | Child
    | Grandchild
    deriving (Eq,Ord,Read,Show)
-
+-}
 data Participant
    = Participant
-   { name       :: !Name
-   , family     :: !Family
-   , generation :: !Generation
-   , email      :: !String
+   { name  :: !Name
+--   , family     :: !Family
+--   , generation :: !Generation
+   , email :: !String
+   , tags  :: ![String]
    } deriving (Eq,Ord,Show)
 {-
 instance Show Participant where
   show = name
 -}
 
+{-
 instance Read Participant where
   readsPrec _ str
     = [ ( Participant w x y z, t'''') 
@@ -42,3 +44,4 @@ instance Read Family where
 
 instance Show Family where
   show (Family f) = f
+-}

@@ -2,6 +2,7 @@ module SecretSanta.Mailing
   ( notifyParticipants
   ) where
 
+{-
 import SecretSanta.Arrangement
 import SecretSanta.Participant
 import SecretSanta.Types
@@ -18,9 +19,11 @@ import Network.Mail.SMTP
 -- | Returns a Maybe list of failed notifications
 -- | Nothing indicates a success.
 
+-}
 -- ERRORS HERE, almost correct
-notifyParticipants :: Parameters -> Arrangement -> IO ()
-notifyParticipants parameters
+-- notifyParticipants :: Parameters -> Arrangement -> IO ()
+notifyParticipants parameters = undefined
+{-
   = mapM_ (dispatchMail . makeMail) . assocs
   . fmap toParticipant . mapKeys toParticipant 
   where
@@ -35,9 +38,11 @@ notifyParticipants parameters
                        [toAddress x] [] []
                        (pack "Secret Santa")
                        [craftMessageBody people (name x, name y)]
+-}
+
+{-
 
 -- | 
-
 craftMessageBody :: [Participant] -> (Name,Name) -> Part
 craftMessageBody people (from,to)
   = plainTextPart
@@ -100,3 +105,5 @@ contactRow p = uncolumns
 doubleUnlines, uncolumns :: [String] -> String
 doubleUnlines = intercalate "\n\n"
 uncolumns     = intercalate "\t"
+
+-}

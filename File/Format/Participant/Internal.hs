@@ -4,7 +4,7 @@ module File.Format.Participant.Internal where
 
 import Control.Applicative
 import Data.Char               (isSpace)
-import Data.List.NonEmpty      (NonEmpty( (:|) ), some1)
+import Data.List.NonEmpty      (NonEmpty( (:|) ), fromList, some1)
 import Data.Semigroup
 import Text.Megaparsec
 import Text.Megaparsec.Prim    (MonadParsec)
@@ -31,33 +31,35 @@ newtype ParticipantTag   = PT (NonEmpty Char)
 
 
 fileDefinition :: (MonadParsec e s m, Token s ~ Char) => m (NonEmpty Participant)
-fileDefinition = some1 participantDefinition
+fileDefinition = fromList <$> (participantDefinition `sepBy1` (eol <* space)) <* space <* eof
 
 
 participantDefinition :: (MonadParsec e s m, Token s ~ Char) => m Participant
 participantDefinition =
-    Participant
-      <$> ( nameDefinition <* space)
-      <*> (emailDefinition <* space)
-      <*> ( tagsDefinition <* space)
+    Participant <$> nameDefinition <*> emailDefinition <*> tagsDefinition
   
 
 nameDefinition :: (MonadParsec e s m, Token s ~ Char) => m ParticipantName
-nameDefinition = space *> (PN <$> (anyChar `thisUntil` eol))
+nameDefinition = space *> (PN <$> (anyChar `thisUntil` eol)) <* eol
 
 
 emailDefinition :: (MonadParsec e s m, Token s ~ Char) => m ParticipantEmail
 emailDefinition = do
-    _ <- space
+    _      <- inlineSpace
     prefix <- nonSpaceCharacter `thisUntil` char '@'
     domain <- nonSpaceCharacter `thisUntil` char '.'
-    suffix <- nonSpaceCharacter `thisUntil` eol
-    pure . PE $ prefix <> ('@':|[]) <> domain <> ('.':|[]) <> suffix
-
+    suffix <- nonSpaceCharacter `thisUntil` spaceChar
+    -- Eat all the characters to the end of the line
+    _      <- anyChar           `thisUntil'` eol
+    _      <- eol
+    pure . PE $ prefix <> domain <> suffix
 
  
 tagsDefinition :: (MonadParsec e s m, Token s ~ Char) => m [ParticipantTag]
-tagsDefinition = (tagDefinition `sepBy` inlineSpace) <* eol
+tagsDefinition = zeroTags <|> someTags
+  where
+    zeroTags = lookAhead eol *> pure []
+    someTags = (tagDefinition `sepBy` inlineSpace) <* eol
 
 
 tagDefinition :: (MonadParsec e s m, Token s ~ Char) => m ParticipantTag

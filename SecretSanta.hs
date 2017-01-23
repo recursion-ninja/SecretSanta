@@ -3,15 +3,28 @@ module Main where
 import Control.Applicative     (liftA3)
 import Data.Maybe
 import File.Format.Participant.Internal
+import Data.List.NonEmpty
 import Prelude
 import Safe
+{-
 import SecretSanta.Arrangement
 import SecretSanta.Mailing
 import SecretSanta.Participant
 import SecretSanta.Solver
 import SecretSanta.Types
+-}
 import System.Environment
+import Text.Megaparsec
 
+
+main :: IO ()
+main = do
+    stream <- getContents
+    case (parse fileDefinition "STDIN" stream :: Either (ParseError Char Dec) (NonEmpty Participant)) of
+      Left  error  -> putStrLn $ parseErrorPretty error
+      Right result -> print result
+
+{-
 main :: IO ()
 main = getArgs
    >>= fmap parseParameters . mapM readFile
@@ -64,3 +77,4 @@ whenNothingJust = (Just .) . fromMaybe
   || n <  0    = Nothing
   |  n == 0    = Just $ head xs
   |  otherwise = tail xs !? (n-1)
+-}
